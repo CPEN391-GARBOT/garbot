@@ -1,0 +1,41 @@
+C:/CPEN391/v1/denseAccelerator.v {1 {vlog -work work -stats=none C:/CPEN391/v1/denseAccelerator.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module denseAccelerator
+-- Compiling module SM
+-- Compiling module reg32
+-- Compiling module vDFF
+
+Top level modules:
+	denseAccelerator
+	vDFF
+
+} {} {}} C:/CPEN391/v1/tb_maxAccelerator.v {2 {vlog -work work -stats=none C:/CPEN391/v1/tb_maxAccelerator.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module tb_maxAccelerator
+** Warning: C:/CPEN391/v1/tb_maxAccelerator.v(86): (vlog-2600) [RDGN] - Redundant digits in numeric literal.
+** Warning: C:/CPEN391/v1/tb_maxAccelerator.v(92): (vlog-2600) [RDGN] - Redundant digits in numeric literal.
+** Warning: C:/CPEN391/v1/tb_maxAccelerator.v(102): (vlog-2600) [RDGN] - Redundant digits in numeric literal.
+** Warning: C:/CPEN391/v1/tb_maxAccelerator.v(121): (vlog-2600) [RDGN] - Redundant digits in numeric literal.
+** Warning: C:/CPEN391/v1/tb_maxAccelerator.v(127): (vlog-2600) [RDGN] - Redundant digits in numeric literal.
+** Warning: C:/CPEN391/v1/tb_maxAccelerator.v(132): (vlog-2600) [RDGN] - Redundant digits in numeric literal.
+** Warning: C:/CPEN391/v1/tb_maxAccelerator.v(137): (vlog-2600) [RDGN] - Redundant digits in numeric literal.
+** Warning: C:/CPEN391/v1/tb_maxAccelerator.v(148): (vlog-2600) [RDGN] - Redundant digits in numeric literal.
+
+Top level modules:
+	tb_maxAccelerator
+
+} {} {}} C:/CPEN391/v1/tb_denseAccelerator.v {1 {vlog -work work -stats=none C:/CPEN391/v1/tb_denseAccelerator.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module tb_denseAccelerator
+
+Top level modules:
+	tb_denseAccelerator
+
+} {} {}} C:/CPEN391/v1/maxAccelerator.v {1 {vlog -work work -stats=none C:/CPEN391/v1/maxAccelerator.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module maxAccelerator
+
+Top level modules:
+	maxAccelerator
+
+} {} {}}

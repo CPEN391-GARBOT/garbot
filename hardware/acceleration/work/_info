@@ -1,0 +1,207 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dC:/intelFPGA_lite/18.1
+vconvAccelerator
+Z0 !s110 1615185623
+!i10b 1
+!s100 0jHif2_<[2=RRLUko7Wbh0
+I2HKlci]K@?4GWJoRaV=X>1
+Z1 VDg1SIo80bB@j0V0VzS_@n1
+Z2 dC:/CPEN391/v1
+w1615177045
+8C:/CPEN391/v1/convAccelerator.v
+FC:/CPEN391/v1/convAccelerator.v
+L0 1
+Z3 OV;L;10.5b;63
+r1
+!s85 0
+31
+Z4 !s108 1615185623.000000
+!s107 C:/CPEN391/v1/convAccelerator.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/CPEN391/v1/convAccelerator.v|
+!i113 1
+Z5 o-work work
+Z6 tCvgOpt 0
+nconv@accelerator
+vdenseAccelerator
+Z7 !s110 1615185624
+!i10b 1
+!s100 bT>mOW8AIFo1FCz_9B0?J1
+Izoaz]R@XKN[El3JXXoebL0
+R1
+R2
+Z8 w1615185620
+Z9 8C:/CPEN391/v1/denseAccelerator.v
+Z10 FC:/CPEN391/v1/denseAccelerator.v
+L0 1
+R3
+r1
+!s85 0
+31
+Z11 !s108 1615185624.000000
+Z12 !s107 C:/CPEN391/v1/denseAccelerator.v|
+Z13 !s90 -reportprogress|300|-work|work|-stats=none|C:/CPEN391/v1/denseAccelerator.v|
+!i113 1
+R5
+R6
+ndense@accelerator
+vmaxAccelerator
+R0
+!i10b 1
+!s100 GCa6n[3>N:3dWn0T[?1GT3
+I^PHn``YZj>`Xm[23UN5]71
+R1
+R2
+w1615165033
+8C:/CPEN391/v1/maxAccelerator.v
+FC:/CPEN391/v1/maxAccelerator.v
+L0 1
+R3
+r1
+!s85 0
+31
+R4
+!s107 C:/CPEN391/v1/maxAccelerator.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/CPEN391/v1/maxAccelerator.v|
+!i113 1
+R5
+R6
+nmax@accelerator
+vreg32
+R7
+!i10b 1
+!s100 B`F4Gb_4iDG]S`<Y<_6>K0
+IS;;SFSPHK29NkejiH0i6L2
+R1
+R2
+R8
+R9
+R10
+L0 116
+R3
+r1
+!s85 0
+31
+R11
+R12
+R13
+!i113 1
+R5
+R6
+vSM
+R7
+!i10b 1
+!s100 >YNGYE8eMajZ9cN8m7R9M2
+IY2nechB35TCkDznD>l`C;0
+R1
+R2
+R8
+R9
+R10
+L0 41
+R3
+r1
+!s85 0
+31
+R11
+R12
+R13
+!i113 1
+R5
+R6
+n@s@m
+vtb_convAccelerator
+R0
+!i10b 1
+!s100 hgmTA5i0<S?cEcmXMD;nb2
+I7TdQQENb_15_5j1XWWXZj1
+R1
+R2
+w1615162561
+8C:/CPEN391/v1/tb_convAccelerator.v
+FC:/CPEN391/v1/tb_convAccelerator.v
+L0 1
+R3
+r1
+!s85 0
+31
+R4
+!s107 C:/CPEN391/v1/tb_convAccelerator.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/CPEN391/v1/tb_convAccelerator.v|
+!i113 1
+R5
+R6
+ntb_conv@accelerator
+vtb_denseAccelerator
+R0
+!i10b 1
+!s100 91S2@YFh66@KELP=I@=F>2
+I8LfeMDL?FHg>CTdIJ3TBO2
+R1
+R2
+w1615185511
+8C:/CPEN391/v1/tb_denseAccelerator.v
+FC:/CPEN391/v1/tb_denseAccelerator.v
+L0 1
+R3
+r1
+!s85 0
+31
+R4
+!s107 C:/CPEN391/v1/tb_denseAccelerator.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/CPEN391/v1/tb_denseAccelerator.v|
+!i113 1
+R5
+R6
+ntb_dense@accelerator
+vtb_maxAccelerator
+R0
+!i10b 1
+!s100 6GBCh:IzGVFJ;c_>_9hO`1
+I6_NP<kl2I^heYW09OF`@z3
+R1
+R2
+w1615165473
+8C:/CPEN391/v1/tb_maxAccelerator.v
+FC:/CPEN391/v1/tb_maxAccelerator.v
+L0 1
+R3
+r1
+!s85 0
+31
+R4
+!s107 C:/CPEN391/v1/tb_maxAccelerator.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/CPEN391/v1/tb_maxAccelerator.v|
+!i113 1
+R5
+R6
+ntb_max@accelerator
+vvDFF
+R7
+!i10b 1
+!s100 `7NThE:;EfEhgQnHj=mCL0
+ICNL^?bD`a8Q<j>V<VZMkd0
+R1
+R2
+R8
+R9
+R10
+L0 133
+R3
+r1
+!s85 0
+31
+R11
+R12
+R13
+!i113 1
+R5
+R6
+nv@d@f@f
