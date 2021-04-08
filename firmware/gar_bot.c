@@ -18,9 +18,9 @@
 #define HPS_BRIDGE_SPAN ( 0x04000000 )
 #define HPS_BRIDGE_MASK ( LW_REGS_SPAN - 1 )
 #define SDRAM_OFFSET 0x0
-#define PHOTO_OFFSET 0x00100000
-#define FIRST_BUFFER 0x00200000
-#define SECOND_BUFFER 0x00300000
+#define PHOTO_OFFSET 0x00500000
+#define FIRST_BUFFER 0x00600000
+#define SECOND_BUFFER 0x00700000
 
 #define FINAL_ABSOLUTE_MASK 0x7fff
 #define FINAL_SIGN_MASK 0x8000
@@ -29,6 +29,9 @@
 #define COMPOST 2
 #define PAPER 3
 #define RECYCLING 4
+
+#define NUM_WEIGHTS 3515932 / 4
+#define NUM_PIXEL_VALUES 196608 / 4
 
 
 /**
@@ -72,7 +75,7 @@ int load_weights(void) {
 	}
 
 	//iterate over entire weights file, note need to make size not hardcoded magic num...
-	for (x = 0; x < 3515932 / 4; x++) {
+	for (x = 0; x < NUM_WEIGHTS; x++) {
 		fread(&buffer, sizeof(int), 1, binFile);
 		*(sdram_addr + x) = buffer;
 	}
@@ -127,7 +130,7 @@ int load_photo() {
 	}
 
 	//iterate over entire photo, note need to make size not hardcoded magic num...
-	for (x = 0; x < 196608 / 4; x++) {
+	for (x = 0; x < NUM_PIXEL_VALUES; x++) {
 		fread(&buffer, sizeof(int), 1, binFile);
 		*(photo_addr + x) = buffer;
 	}
@@ -220,6 +223,14 @@ int start_accelerators(void) {
 	 * Read from photo, write to first_addr_physical
 	 */
 
+	*(convolution_virtual+1) = photo_addr_physical;
+	*(convolution_virtual+2) = sdram_addr_physical;
+	*(convolution_virtual+3) = first_addr_physical;
+	*(convolution_virtual+4) = 3;
+	*(convolution_virtual+5) = 64;
+	*(convolution_virtual+6) = 128;
+	*(convolution_virtual+0) = 0;
+
 
 	/**
 	 * Call max pooling layer where 
@@ -244,6 +255,14 @@ int start_accelerators(void) {
 	 * 
 	 */
 
+	*(convolution_virtual+1) = second_addr_physical;
+	*(convolution_virtual+2) = sdram_addr_physical + 0x1c00;
+	*(convolution_virtual+3) = first_addr_physical;
+	*(convolution_virtual+4) = 64;
+	*(convolution_virtual+5) = 64;
+	*(convolution_virtual+6) = 63;
+	*(convolution_virtual+0) = 0;
+
 	/**
 	 * Call max pooling layer where 
 	 *  -we read from first_addr_physical
@@ -265,6 +284,14 @@ int start_accelerators(void) {
 	 * weights offset: (3x3x3x64 + 64 + 3x3x64x64 + 64) * 4bytes/weight = 154880bytes = 0x25d00
 	 * 
 	 */
+
+	*(convolution_virtual+1) = second_addr_physical;
+	*(convolution_virtual+2) = sdram_addr_physical + 0x25d00;
+	*(convolution_virtual+3) = first_addr_physical;
+	*(convolution_virtual+4) = 64;
+	*(convolution_virtual+5) = 64;
+	*(convolution_virtual+6) = 30;
+	*(convolution_virtual+0) = 0;
 
 	/**
 	 * Call max pooling layer where 
@@ -327,9 +354,9 @@ int start_accelerators(void) {
 	int maxIndex = 0;
 
 	for (x = 0; x < 7; x++) {
-		unsigned int absolute = *(second_addr_physical + x) & FINAL_ABSOLUTE_MASK;
+		unsigned int absolute = *(second_addr_virtual + x) & FINAL_ABSOLUTE_MASK;
 
-		if (*(second_addr_physical + x) & FINAL_SIGN_MASK) {
+		if (*(second_addr_virtual + x) & FINAL_SIGN_MASK) {
 			//this number is negative
 			value = -1 * absolute;
 		} else {
