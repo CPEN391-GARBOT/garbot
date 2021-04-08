@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">GarbotApp</string>
+    <string name="login_title">Please Log Into Your Garbot Account</string>
+    <string name="create_account_title">Create A New Garbot Account</string>
+    <string name="name">Username</string>
+    <string name="enter_name">Enter Username</string>
+    <string name="password">Password</string>
+    <string name="enter_password">Enter Password</string>
+    <string name="create_account">Create a New Account</string>
+    <string name="new_account_prompt">Do not have an account?</string>
+    <string name="login">Login</string>
+    <string name="create_new_account">Create Account</string>
+    <string name="new_username">Choose a username</string>
+    <string name="new_password">Choose a password</string>
+    <string name="reenter_password">Reenter your password</string>
+    <string name="main_title">Your Garbage Stats</string>
+    <string name="l_day">Last Day</string>
+    <string name="l_week">Last Week</string>
+    <string name="l_month">Last Month</string>
+    <string name="l_year">Last Year</string>
+    <string name="manual_btn">Manual Bin Control</string>
+</resources>

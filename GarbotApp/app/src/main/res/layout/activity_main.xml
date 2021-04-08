@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_dark">
+
+    <LinearLayout
+        android:id="@+id/garbage_stats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/green_grad"
+            android:text="@string/main_title"
+            android:textAlignment="center"
+            android:singleLine="false"
+            android:minLines="1"
+            android:textColor="@color/white"
+            android:textSize="40sp" />
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/garbage_pie_chart"
+            android:layout_width="match_parent"
+            android:layout_height="320dp"
+            android:layout_marginTop="10dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:background="@color/hint_white"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_below="@id/garbage_stats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="15dp">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp">
+                <Button
+                    android:id="@+id/day"
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:background="@color/green_dark"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:text="@string/l_day"/>
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp">
+                <Button
+                    android:id="@+id/week"
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:background="@color/green_light"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:text="@string/l_week"/>
+            </RelativeLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginTop="7dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp">
+                <Button
+                    android:id="@+id/month"
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:background="@color/green_light"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:text="@string/l_month"/>
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp">
+                <Button
+                    android:id="@+id/year"
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:background="@color/green_light"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:text="@string/l_year"/>
+            </RelativeLayout>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/manual_btn"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="75dp"
+            android:background="@drawable/green_grad_ovel"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:text="@string/manual_btn"/>
+
+    </LinearLayout>
+
+</RelativeLayout>
