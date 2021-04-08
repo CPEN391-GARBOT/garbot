@@ -21,4 +21,4 @@ module maxAccelerator(input clk, input reset, input [31:0] dataIn,
     end
   end
 
-endmodule
+endmodule 
