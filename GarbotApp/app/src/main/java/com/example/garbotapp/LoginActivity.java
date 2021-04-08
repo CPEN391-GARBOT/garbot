@@ -24,7 +24,7 @@ import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity {
     private RequestQueue queue;
-    private static final String LOGIN_URL = "http://c5ca9fbb580e.ngrok.io/user/";
+    private static final String LOGIN_URL = "http://e348951796ba.ngrok.io/user/";
 
     private EditText enterName;
     private EditText enterPass;
