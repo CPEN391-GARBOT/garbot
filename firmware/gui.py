@@ -564,17 +564,19 @@ while not(stop) :
    #msg = "(%03d,%03d) (%03d,%03d) color:%04X" % (0, 0, screen_x - 1, screen_y- 1, robot_background)
    #video.text(char_x - len(msg), char_y - 2, msg)
    
-   print("Waiting for trash to be scanned (^C to exit)\n")
+   print("Waiting for trash to be scanned (^C to exit, enter c to clear screen)\n")
    scanned_result = input() # Assume given in x-x
-   if stop : # Kickout if ^C is entered
-      break
+   if confirm_result[0] == "c" :
+      video.clear()   # clear current VGA Back buffer
+      video.erase() # Clear all text on screen
    
    if scanned_result[0] == "1" : 
       user_manual_promt(scanned_result[2])
 
       confirm_result = input()
-      if stop : # Kickout if ^C is entered
-         break
+      if confirm_result[0] == "c" :
+         video.clear()   # clear current VGA Back buffer
+         video.erase() # Clear all text on screen
       
       if scanned_result[2] == confirm_result[2] :
          open_bin(confirm_result[2], 2)
