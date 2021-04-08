@@ -21,9 +21,11 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Objects;
+
 public class CreateAccount extends AppCompatActivity {
     private RequestQueue queue;
-    private static final String CREATE_URL = "http://c5ca9fbb580e.ngrok.io/user/";
+    private static String CREATE_URL = "http://e348951796ba.ngrok.io/user/";;
 
     private EditText enterName;
     private EditText enterPass;
@@ -78,6 +80,7 @@ public class CreateAccount extends AppCompatActivity {
                 JsonObjectRequest jsonObjectRequestPost = new JsonObjectRequest(Request.Method.POST, CREATE_URL, user, r -> {
                     Intent mainIntent = new Intent(CreateAccount.this, MainActivity.class);
                     mainIntent.putExtra("USERNAME", enteredUsername);
+                    mainIntent.putExtra("URL", CREATE_URL);
                     startActivity(mainIntent);
                 }, error -> {
                     Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();

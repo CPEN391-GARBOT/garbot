@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <sys/mman.h>
+#include "gar_bot.h"
 
 #define LW_REGS_BASE ( 0xff200000 )
 #define LW_REGS_SPAN ( 0x00200000 )
@@ -221,7 +222,7 @@ int start_accelerators(void) {
 	 * Weights are located at sdram_addr_physical, where we have (3x3x3x64x4 bytes = 6,912 bytes)
 	 *
 	 * Read from photo, write to first_addr_physical
-
+	 */
 
 	*(convolution_virtual+1) = photo_addr_physical;
 	*(convolution_virtual+2) = sdram_addr_physical;
@@ -230,7 +231,7 @@ int start_accelerators(void) {
 	*(convolution_virtual+5) = 64;
 	*(convolution_virtual+6) = 128;
 	*(convolution_virtual+0) = 0;
-*/
+
 
 	/**
 	 * Call max pooling layer where
@@ -252,7 +253,7 @@ int start_accelerators(void) {
 	 * input is at second_addr_physical
 	 * output is first_addr_physical
 	 * weights offset: (3x3x3x64 + 64) x 4bytes/weight = 7168bytes = 0x1c00
-	 *
+	 */
 
 
 	*(convolution_virtual+1) = second_addr_physical;
@@ -262,7 +263,7 @@ int start_accelerators(void) {
 	*(convolution_virtual+5) = 64;
 	*(convolution_virtual+6) = 63;
 	*(convolution_virtual+0) = 0;
-	*/
+	
 
 	/**
 	 * Call max pooling layer where
@@ -283,7 +284,7 @@ int start_accelerators(void) {
 	 * input is at second_addr_physical
 	 * output is first_addr_physical
 	 * weights offset: (3x3x3x64 + 64 + 3x3x64x64 + 64) * 4bytes/weight = 154880bytes = 0x25d00
-	 *
+	 */
 
 
 	*(convolution_virtual+1) = second_addr_physical;
@@ -293,7 +294,7 @@ int start_accelerators(void) {
 	*(convolution_virtual+5) = 64;
 	*(convolution_virtual+6) = 30;
 	*(convolution_virtual+0) = 0;
-	*/
+	
 
 	/**
 	 * Call max pooling layer where

@@ -21,17 +21,19 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Date;
 import java.util.Objects;
 
 public class ManualControl extends AppCompatActivity {
     private RequestQueue queue;
-    private static final String TRASH_URL = "http://c5ca9fbb580e.ngrok.io/garbage/";
+    private static String TRASH_URL = "http://e348951796ba.ngrok.io/garbage/";
     private static String username;
     private static int quantity;
 
     private TextView currentQ;
     private Button garbageBtn, compostBtn, paperBtn, recyclingBtn;
     private Button minusBtn, plusBtn;
+    private Date date;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +41,9 @@ public class ManualControl extends AppCompatActivity {
         setContentView(R.layout.activity_manual_control);
         queue = Volley.newRequestQueue(getApplicationContext());
         username = Objects.requireNonNull(getIntent().getExtras()).getString("USERNAME");
-        currentQ = findViewById(R.id.quantity);
+        currentQ = (TextView) findViewById(R.id.quantityTextView);
         quantity = 1;
+        date = new Date();
 
         // Start by setting up a title for the page
         ActionBar actionBar = getSupportActionBar();
@@ -72,23 +75,30 @@ public class ManualControl extends AppCompatActivity {
 
         minusBtn = findViewById(R.id.minus_btn);
         minusBtn.setOnClickListener(view -> {
-            quantity --;
-            currentQ.setText(quantity);
+            if (quantity > 1) {
+                quantity --;
+                currentQ.setText(String.valueOf(quantity));
+            }
         });
 
         plusBtn = findViewById(R.id.plus_btn);
         plusBtn.setOnClickListener(view -> {
-            quantity ++;
-            currentQ.setText(quantity);
+            if (quantity < 10) {
+                quantity ++;
+                currentQ.setText(String.valueOf(quantity));
+            }
         });
     }
 
     // Sends request to open a bin
     private void openBin(String type) {
+        long time = date.getTime();
+
         JSONObject user = new JSONObject();
         try {
             user.put("username", username);
             user.put("quantity", quantity);
+            user.put("timestamp", time);
         } catch (JSONException e) {
             Toast.makeText(getApplicationContext(), "A network error occurred.", Toast.LENGTH_LONG).show();
         }

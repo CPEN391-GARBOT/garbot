@@ -61,11 +61,11 @@ def load_file():
 
     with open("photo.bin", "ab") as myfile:
         for pixel in flat_array:
-            test = float_bin(abs(pixel), 24)
+            fixed_bin = float_bin(abs(pixel), 24)
             if pixel >= 0:
-                sign_extended = "0" + test
+                sign_extended = "0" + fixed_bin
             else:
-                sign_extended = "1" + test
+                sign_extended = "1" + fixed_bin
                 
             n = int(sign_extended, 2)
             data = n.to_bytes(4, "big")
