@@ -5,10 +5,8 @@
 
 #define HW_REGS_BASE ( 0xff200000 )
 #define HW_REGS_SPAN ( 0x00200000 )
-//#define HW_REGS_SPAN ( 0x00005000 )
 #define HW_REGS_MASK ( HW_REGS_SPAN - 1 )
 
-#define LED_PIO_BASE 0x2040
 #define BUTTON_BASE 0x10
 #define REAL_LED_BASE 0x20
 
@@ -16,7 +14,9 @@
 #define HPS_BRIDGE_SPAN ( 0x04000000 )
 #define HPS_BRIDGE_MASK ( HW_REGS_SPAN - 1 )
 #define SDRAM_OFFSET 0x0
-#define PHOTO_OFFSET 0x01000000
+#define PHOTO_OFFSET 0x00100000
+#define FIRST_BUFFER 0x00200000
+#define SECOND_BUFFER 0x00300000
 
 /**
  * File writes file located at ./weights.bin into memory at the base of the SDRAM
@@ -50,7 +50,7 @@ int load_weights(void) {
 	sdram_addr=(unsigned int *)(virtual_base_HW + (( SDRAM_OFFSET ) & (
 			HPS_BRIDGE_MASK ) ));
 
-	unsigned char buffer;
+	unsigned int buffer;
 	int x = 0;
 
 	FILE * binFile = fopen("./weights.bin", "r");
@@ -61,8 +61,8 @@ int load_weights(void) {
 	}
 
 	//iterate over entire weights file, note need to make size not hardcoded magic num...
-	for (x = 0; x < 3515932; x++) {
-		fread(&buffer, sizeof(char), 1, binFile);
+	for (x = 0; x < 3515932 / 4; x++) {
+		fread(&buffer, sizeof(int), 1, binFile);
 		*(sdram_addr + x) = buffer;
 	}
 
@@ -106,7 +106,7 @@ int load_photo() {
 			HPS_BRIDGE_MASK ) ));
 
 
-	unsigned char buffer;
+	unsigned int buffer;
 	int x = 0;
 
 	FILE * binFile = fopen("./photo.bin", "r");
@@ -117,8 +117,8 @@ int load_photo() {
 	}
 
 	//iterate over entire photo, note need to make size not hardcoded magic num...
-	for (x = 0; x < 196608; x++) {
-		fread(&buffer, sizeof(char), 1, binFile);
+	for (x = 0; x < 196608 / 4; x++) {
+		fread(&buffer, sizeof(int), 1, binFile);
 		*(photo_addr + x) = buffer;
 	}
 
@@ -129,12 +129,127 @@ int load_photo() {
 }
 
 /**
- * Call this function to
+ * Call this function to start accelerators
  */
 int start_accelerators(void) {
-	//start the first ones
-	//start them all
-	//ext.
+	volatile unsigned int *sdram_addr=NULL;
+	volatile unsigned int *photo_addr=NULL;
+	volatile unsigned int *first_addr=NULL;
+	volatile unsigned int *second_addr=NULL;
+	void *virtual_base_HW;
+	int fd;
+
+	// Open /dev/mem
+	if( ( fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) ) ) == -1 ) {
+		printf( "ERROR: could not open \"/dev/mem\"...\n" );
+		return( -1 );
+	}
+
+
+	// get virtual addr of the HPS-FPGA bus
+	virtual_base_HW = mmap( NULL, HPS_BRIDGE_SPAN, ( PROT_READ | PROT_WRITE ),
+			MAP_SHARED, fd, HPS_BRIDGE_BASE );
+	if( virtual_base_HW == MAP_FAILED ) {
+		printf( "ERROR: mmap() failed...\n" );
+		close( fd );
+		return(-1);
+	}
+
+
+	// Get address of photo base in SDRAM
+	sdram_addr=(unsigned int *)(virtual_base_HW + (( SDRAM_OFFSET ) & (
+			HPS_BRIDGE_MASK ) ));
+
+	//photo_addr=(unsigned int *)(virtual_base_HW + (( SDRAM_OFFSET + PHOTO_OFFSET ) & (
+	//		HPS_BRIDGE_MASK ) ));
+	photo_addr = HPS_BRIDGE_BASE + SDRAM_OFFSET + PHOTO_OFFSET;
+
+	//first_addr = (unsigned int *)(virtual_base_HW + (( SDRAM_OFFSET + FIRST_BUFFER ) & (
+	//		HPS_BRIDGE_MASK ) ));
+
+	first_addr = HPS_BRIDGE_BASE + SDRAM_OFFSET + FIRST_BUFFER;
+
+	//second_addr = (unsigned int *)(virtual_base_HW + (( SDRAM_OFFSET + SECOND_BUFFER ) & (
+	//		HPS_BRIDGE_MASK ) ));
+
+	second_addr = HPS_BRIDGE_BASE + SDRAM_OFFSET + SECOND_BUFFER;
+
+	/* Call convolutional network where we have a 3x128x128 photo located at photo_addr 
+	 * (3x128x128x4bytes/num = 196,608 bytes)
+	 * 
+	 * Weights are located at sdram_addr, where we have (3x3x3x64x4 bytes = 6,912 bytes)
+	 * 
+	 * Read from photo, write to first buffer
+	 */
+
+	/**
+	 * Call max pooling layer where 
+	 *  -we read from first buffer
+	 *  -we write to second buffer
+	 *  -64 layers
+	 * 	-126 row size
+	 */
+
+	/**
+	 * Call convolution where
+	 * input is at second buffer
+	 * output is first buffer
+	 * weights are located at base + 0x700
+	 * 
+	 */
+
+	/**
+	 * Call max pooling layer where 
+	 *  -we read from first buffer
+	 *  -we write to second buffer
+	 *  -64 layers
+	 * 	-61 row size
+	 */
+
+	/**
+	 * Call convolution where
+	 * input is at second buffer
+	 * output is first buffer
+	 * weights are located at base + 0x21780
+	 * 
+	 */
+
+	/**
+	 * Call max pooling layer where 
+	 *  -we read from first buffer
+	 *  -we write to second buffer
+	 *  -64 layers
+	 * 	-28 row size
+	 */
+
+	/**
+	 * Call dense layer where 
+	 *  -read from second buffer
+	 *  -write to first buffer
+	 *  -weights found at base + 0x2a7c0
+	 *  -biases found at base + ee7c0
+	 *  -activation length = 12544*64
+	 */
+
+
+	/**
+	 * Call dense layer where 
+	 *  -read from first buffer
+	 *  -write to second buffer
+	 *  -weights found at base + 0xee800
+	 *  -biases found at base + ee9c0
+	 *  -activation length = 64 * 7
+	 */
+
+	/**
+	 *  Now just find the max of the first 7 numbers in second buffer
+	 *  If max is index 5, return garbage
+	 *  If max is index 1,2,4 return recycling
+	 *  If max is index 0,3 return mixed paper
+	 *  If max is index 6, return compost
+	 */
+
+
 }
 
 
@@ -201,6 +316,11 @@ int send_wifi_response(void) {
 }
 
 
+/**
+ * Turn leds on
+ * 
+ * Returns -1 on memory error, 0 on success
+ */
 int turn_leds_on(void) {
 	volatile unsigned int *leds=NULL;
 	void *virtual_base_LW;
@@ -228,15 +348,16 @@ int turn_leds_on(void) {
 	leds =(unsigned int *)(virtual_base_LW + (( REAL_LED_BASE ) & (
 		HW_REGS_MASK ) ));
 
-	//printf("The value of the led pointer %p\n", leds);
-	//printf("The value of the led pointer + 1 %p\n", leds+1);
-
-
 	*leds = 0x3ff;
 
 	return 0;
 }
 
+/**
+ * Turn leds off
+ * 
+ * Returns -1 on memory error, 0 on success
+ */
 int turn_leds_off(void) {
 	volatile unsigned int *leds=NULL;
 	void *virtual_base_LW;
@@ -264,10 +385,6 @@ int turn_leds_off(void) {
 	leds =(unsigned int *)(virtual_base_LW + (( REAL_LED_BASE ) & (
 		HW_REGS_MASK ) ));
 
-	//printf("The value of the led pointer %p\n", leds);
-	//printf("The value of the led pointer + 1 %p\n", leds+1);
-
-
 	*leds = 0x0;
 
 	return 0;
@@ -288,160 +405,3 @@ int main(void) {
 
 }
 
-/*int main(void)
-{
-    volatile unsigned int *h2p_lw_led_addr=NULL;
-    volatile unsigned int *sdram_addr=NULL;
-    volatile unsigned int *buttons=NULL;
-    void *virtual_base;
-    void *virtual_base_HW;
-    int fd;
-    int bin;
-
-    // Open /dev/mem
-    if( ( fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) ) ) == -1 ) {
-        printf( "ERROR: could not open \"/dev/mem\"...\n" );
-        return( 1 );
-    }
-
-    // Open /media/fat_partition/swag.bin
-    //if( ( bin = open( " /media/fat_partition/swag.bin", ( O_RDWR | O_SYNC ) ) ) == -1 ) {
-    //        printf( "ERROR: could not open our bin file ....\n" );
-    //        close(fd);
-    //        return( 1 );
-    //}
-
-    printf( "Starting 1st mmap()...\n" );
-
-    // get virtual addr that maps to physical
-    virtual_base = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ),
-        MAP_SHARED, fd, HW_REGS_BASE );
-    if( virtual_base == MAP_FAILED ) {
-        printf( "ERROR: mmap() failed...\n" );
-        close( fd );
-        close( bin );
-        return(1);
-    }
-
-    printf( "Got past 1st mmap()...\n" );
-
-
-    printf( "Starting 2nd mmap()...\n" );
-
-        // get virtual addr that maps to physical
-    virtual_base_HW = mmap( NULL, HPS_BRIDGE_SPAN, ( PROT_READ | PROT_WRITE ),
-            MAP_SHARED, fd, HPS_BRIDGE_BASE );
-        if( virtual_base_HW == MAP_FAILED ) {
-            printf( "ERROR: mmap() failed...\n" );
-            close( fd );
-            close( bin );
-            return(1);
-        }
-
-    printf( "Got past 2nd mmap()...\n" );
-
-
-    // Get the address that maps to the LEDs
-    h2p_lw_led_addr=(unsigned int *)(virtual_base + (( REAL_LED_BASE ) & (
-    HW_REGS_MASK ) ));
-
-    //Get address of buttons
-    buttons =(unsigned int *)(virtual_base + (( BUTTON_BASE ) & (
-        HW_REGS_MASK ) ));
-
-    // Get address of SDRAM
-    sdram_addr=(unsigned int *)(virtual_base_HW + (( SDRAM_OFFSET ) & (
-    		HPS_BRIDGE_MASK ) ));
-
-
-    //printf( "Got address...%p\n", h2p_lw_led_addr );
-
-    printf("About to write to memory\n");
-
-    //int a = 0x0;
-    //int b = 0x50;
-
-    //*sdram_addr = a;
-    //*(sdram_addr + 1) = b;
-
-    //printf("About to read from memory\n");
-
-    //printf("a is %x\n", *sdram_addr);
-    //printf("b is %x\n", *(sdram_addr+1));
-    unsigned char buffer;
-    int x = 0;
-    FILE * binFile = fopen("/media/fat_partition/swag.bin", "r");
-    if (binFile == NULL) {
-    	printf( "ERROR: could not open our bin file ....\n" );
-    	close(fd);
-    	return( 1 );
-    }
-
-    printf("about to do loop\n");
-    for (x = 0; x < 6; x++) {
-    	fread(&buffer, sizeof(char), 1, binFile);
-    	printf("char is %c\n", buffer);
-    	*(sdram_addr + x) = buffer;
-    }
-
-    printf("finished loop\n");
-    printf("sdram has %c\n", *(sdram_addr));
-    printf("sdram has %c\n", *(sdram_addr+1));
-    printf("sdram has %c\n", *(sdram_addr+2));
-    printf("sdram has %c\n", *(sdram_addr+3));
-    printf("sdram has %c\n", *(sdram_addr+4));
-    printf("sdram has %c\n", *(sdram_addr+5));
-
-
-
-
-
-
-    int v = 0x5; // arbitrary value
-
-    *h2p_lw_led_addr = v; // write the value to component
-    printf("value is now %x\n", *(h2p_lw_led_addr+1));
-
-    // increment what is in the component
-    *(h2p_lw_led_addr+1) = 0; // does not matter what you write
-    printf("value is now %x\n", *(h2p_lw_led_addr+1));
-
-    // increment it again
-    *(h2p_lw_led_addr+1) = 0; // does not matter what you write
-    printf("value is now %x\n", *(h2p_lw_led_addr+1));
-
-    // get the value in reverse bit order
-    printf("reverse bit order %x\n", *(h2p_lw_led_addr));
-
-    // get the complement of the value
-    printf("complement is %x\n", *(h2p_lw_led_addr+2));
-
-    // Add 1 to the PIO register
-    //*h2p_lw_led_addr = *h2p_lw_led_addr + 1;
-
-
-
-    while(1) {
-    	sleep(1);
-    	printf("value of push buttons is %x\n", *buttons);
-    	*h2p_lw_led_addr = *h2p_lw_led_addr + 1;
-    }
-
-
-
-
-    printf( "Starting munmap()...\n" );
-
-    if( munmap( virtual_base, HW_REGS_SPAN ) != 0 ) {
-        printf( "ERROR: munmap() failed...\n" );
-        close( fd );
-        close( bin );
-        return( 1 );
-    }
-
-    printf( "Finished munmap()...\n" );
-
-    close( fd );
-    close( bin );
-    return 0;
-}*/
