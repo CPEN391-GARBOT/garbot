@@ -7,7 +7,7 @@ from fxpmath import Fxp
 IMG_SIZE = 128
 
 def load_file():
-    path = "./download.jpg"
+    path = "/home/pi/Desktop/image.jpg"
 
     #XxYx3 bgr image
     img_array = cv2.imread(path, cv2.IMREAD_COLOR)
