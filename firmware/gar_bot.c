@@ -223,6 +223,14 @@ int start_accelerators(void) {
 	 * Read from photo, write to first_addr_physical
 	 */
 
+	*(convolution_virtual+1) = photo_addr_physical;
+	*(convolution_virtual+2) = sdram_addr_physical;
+	*(convolution_virtual+3) = first_addr_physical;
+	*(convolution_virtual+4) = 3;
+	*(convolution_virtual+5) = 64;
+	*(convolution_virtual+6) = 128;
+	*(convolution_virtual+0) = 0;
+
 
 	/**
 	 * Call max pooling layer where 
@@ -247,6 +255,14 @@ int start_accelerators(void) {
 	 * 
 	 */
 
+	*(convolution_virtual+1) = second_addr_physical;
+	*(convolution_virtual+2) = sdram_addr_physical + 0x1c00;
+	*(convolution_virtual+3) = first_addr_physical;
+	*(convolution_virtual+4) = 64;
+	*(convolution_virtual+5) = 64;
+	*(convolution_virtual+6) = 63;
+	*(convolution_virtual+0) = 0;
+
 	/**
 	 * Call max pooling layer where 
 	 *  -we read from first_addr_physical
@@ -268,6 +284,14 @@ int start_accelerators(void) {
 	 * weights offset: (3x3x3x64 + 64 + 3x3x64x64 + 64) * 4bytes/weight = 154880bytes = 0x25d00
 	 * 
 	 */
+
+	*(convolution_virtual+1) = second_addr_physical;
+	*(convolution_virtual+2) = sdram_addr_physical + 0x25d00;
+	*(convolution_virtual+3) = first_addr_physical;
+	*(convolution_virtual+4) = 64;
+	*(convolution_virtual+5) = 64;
+	*(convolution_virtual+6) = 30;
+	*(convolution_virtual+0) = 0;
 
 	/**
 	 * Call max pooling layer where 
