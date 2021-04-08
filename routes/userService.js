@@ -30,11 +30,9 @@ router.post("", async (req,res,next) => {
    const data = {
     username: username,
     password: password,
-    garbage: 0,
-    paper: 0,
-    compost: 0,
-    plastic: 0
+    stats: [],
    };
+   console.log("user created");
    
    const result = app.db.collection('garbage').doc(username).set(data);
    res.json({});

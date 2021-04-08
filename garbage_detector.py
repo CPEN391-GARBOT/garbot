@@ -21,6 +21,7 @@
 #source tflite1-env/bin/activate
 #then run it with
 #python3 garbage_detector.py --modeldir=Sample_TFLite_model
+#MAKE SURE THE DE1 ETHERNET IS SET UP: ifconfig eth0 169.254.184.14
 import os
 import argparse
 import cv2
@@ -38,7 +39,7 @@ from PIL import Image
 # Source - Adrian Rosebrock, PyImageSearch: https://www.pyimagesearch.com/2015/12/28/increasing-raspberry-pi-fps-with-python-and-opencv/
 class VideoStream:
     """Camera object that controls video streaming from the Picamera"""
-    def __init__(self,resolution=(600,600),framerate=30):
+    def __init__(self,resolution=(640,480),framerate=30):
         # Initialize the PiCamera and the camera image stream
         self.stream = cv2.VideoCapture(0)
         ret = self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
@@ -77,15 +78,47 @@ class VideoStream:
         self.stopped = True
 
 IMG_SIZE = 128
+
+# Takes a floating point number and decimal places and returns a binary
+# fixed point representation
+def float_bin(number, places = 24):
+  
+    if number.is_integer() :
+        whole = int(number)
+        return f'{whole:07b}' + "000000000000000000000000"
+    whole, dec = str(number).split(".")
+  
+    whole = int(whole)
+    dec = int (dec)
+  
+    # Convert to 7 bit binary
+    res = f'{whole:07b}'
+  
+    for x in range(places):
+        whole, dec = str((decimal_converter(dec)) * 2).split(".")
+        dec = int(dec)
+        res += whole
+  
+    return res
+  
+def decimal_converter(num): 
+    while num > 1:
+        num /= 10
+    return num
+
+
 def load_file():
+    time.sleep(1)
     path = "/home/pi/Desktop/garbage.jpg"
-    #file = Image.open("/home/pi/Desktop/garbage1.jpg")
-    #new_file = file.resize((128,128))
-    #new_file.save('/home/pi/Desktop/garbage.jpg')
-    
+    file = Image.open("/home/pi/Desktop/garbage.jpg")
+    new_file = file.crop((160,0,1120,720))
+    final_file = new_file.resize((128,128))
+    final_file.save('/home/pi/Desktop/garbage.jpg')
 
     #XxYx3 bgr image
     img_array = cv2.imread(path, cv2.IMREAD_COLOR)
+
+    print(len(img_array))
 
     #XxYx3 rgb image
     im = img_array.copy()
@@ -94,6 +127,7 @@ def load_file():
 
     #128x128x3 rgb image    
     new_array = cv2.resize(im, (IMG_SIZE, IMG_SIZE))
+    #formatted_array = cv2.resize(im, (IMG_SIZE, IMG_SIZE))
 
     #3x128x128 rgb image and linearized
     formatted_array = np.transpose(new_array, (2, 0, 1))
@@ -104,22 +138,22 @@ def load_file():
     print(len(flat_array))
 
 
-    for pixel in flat_array:
-        abs_bin = Fxp(abs(pixel), signed=False, n_word=31, n_frac=24)
-        
-        if pixel >= 0:
-            sign_extended = "0" + abs_bin.bin()
-        else:
-            sign_extended = "1" + abs_bin.bin()
-            
-        with open("garbage.bin", "ab") as myfile:
+    with open("photo.bin", "ab") as myfile:
+        for pixel in flat_array:
+            test = float_bin(abs(pixel), 24)
+            if pixel >= 0:
+                sign_extended = "0" + test
+            else:
+                sign_extended = "1" + test
+                
             n = int(sign_extended, 2)
             data = n.to_bytes(4, "big")
             myfile.write(data)
+
     with pysftp.Connection('169.254.184.14', username='root', password='password', port=22) as sftp:
         print("Connection successfully established")
     
-        localpath = '/home/pi/pigarbot/test/garbage.bin'
+        localpath = '/home/pi/pigarbot/garbage.bin'
         remotepath = '/home/root/Garbot/Photo/garbage.bin'
     
         sftp.put(localpath, remotepath)

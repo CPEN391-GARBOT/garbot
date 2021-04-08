@@ -10,9 +10,9 @@
 
 #define BUTTON_BASE 0x50
 #define REAL_LED_BASE 0x00
-#define CONV_OFFSET 0x420 //needs to be changed
-#define POOLING_OFFSET 0x420 //needs to be changed
-#define DENSE_OFFSET 0x420 //needs to be changed
+#define CONV_OFFSET 0x30a0
+#define POOLING_OFFSET 0x3080
+#define DENSE_OFFSET 0x30c0
 
 #define HPS_BRIDGE_BASE ( 0xc0000000 )
 #define HPS_BRIDGE_SPAN ( 0x04000000 )
@@ -122,7 +122,7 @@ int load_photo() {
 	unsigned int buffer;
 	int x = 0;
 
-	FILE * binFile = fopen("./photo.bin", "r");
+	FILE * binFile = fopen("./garbage.bin", "r");
 	if (binFile == NULL) {
 		printf( "ERROR: could not open our bin file ....\n" );
 		close(fd);
@@ -221,7 +221,7 @@ int start_accelerators(void) {
 	 * Weights are located at sdram_addr_physical, where we have (3x3x3x64x4 bytes = 6,912 bytes)
 	 *
 	 * Read from photo, write to first_addr_physical
-	 */
+
 
 	*(convolution_virtual+1) = photo_addr_physical;
 	*(convolution_virtual+2) = sdram_addr_physical;
@@ -230,7 +230,7 @@ int start_accelerators(void) {
 	*(convolution_virtual+5) = 64;
 	*(convolution_virtual+6) = 128;
 	*(convolution_virtual+0) = 0;
-
+*/
 
 	/**
 	 * Call max pooling layer where
@@ -253,7 +253,7 @@ int start_accelerators(void) {
 	 * output is first_addr_physical
 	 * weights offset: (3x3x3x64 + 64) x 4bytes/weight = 7168bytes = 0x1c00
 	 *
-	 */
+
 
 	*(convolution_virtual+1) = second_addr_physical;
 	*(convolution_virtual+2) = sdram_addr_physical + 0x1c00;
@@ -262,6 +262,7 @@ int start_accelerators(void) {
 	*(convolution_virtual+5) = 64;
 	*(convolution_virtual+6) = 63;
 	*(convolution_virtual+0) = 0;
+	*/
 
 	/**
 	 * Call max pooling layer where
@@ -283,7 +284,7 @@ int start_accelerators(void) {
 	 * output is first_addr_physical
 	 * weights offset: (3x3x3x64 + 64 + 3x3x64x64 + 64) * 4bytes/weight = 154880bytes = 0x25d00
 	 *
-	 */
+
 
 	*(convolution_virtual+1) = second_addr_physical;
 	*(convolution_virtual+2) = sdram_addr_physical + 0x25d00;
@@ -292,6 +293,7 @@ int start_accelerators(void) {
 	*(convolution_virtual+5) = 64;
 	*(convolution_virtual+6) = 30;
 	*(convolution_virtual+0) = 0;
+	*/
 
 	/**
 	 * Call max pooling layer where
