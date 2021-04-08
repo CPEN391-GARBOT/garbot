@@ -25,6 +25,7 @@ module convAccelerator(input clk, input reset, input [31:0] dataIn,
   convReg32 regFil8(clk, reset, loadFil8, dataInSigned, outFil8);
   convReg32 regFil9(clk, reset, loadFil9, dataInSigned, outFil9);
 
+  // Combinational Logic
   always @(*) begin
     loadFil1 = 1'b0; loadFil2 = 1'b0; loadFil3 = 1'b0;
     loadFil4 = 1'b0; loadFil5 = 1'b0; loadFil6 = 1'b0;
@@ -45,6 +46,7 @@ module convAccelerator(input clk, input reset, input [31:0] dataIn,
     end
   end
 
+  // Sequential Logic
   always @(posedge clk, negedge reset) begin
     if (!reset) begin
       // Reset all values to 0
@@ -108,6 +110,7 @@ module convAccelerator(input clk, input reset, input [31:0] dataIn,
     end
     else begin
       case (count)
+        // If dataValid == 1'b1 then perform the current multiplication and add it to the sum
         4'b0000: begin
           if (dataValid) begin
             product = dataInSigned * outFil1;

@@ -18,18 +18,18 @@ module maxController(input clk, input reset,
   wire [63:0] opsPerLayer;
 
   assign opsPerLayer = (word4 >>> 1) * (word4 >>> 1);
-  assign master_address = masterAddress * 3'b100;
+  assign master_address = masterAddress * 3'b100; // Each entry is 32 bits which is 4 bytes
   assign master_read = masterRead;
   assign master_write = masterWrite;
   assign slave_waitrequest = slaveWaitRequest;
   assign slave_readdata = slaveReadData;
 
-  `define Wait 3'b000
-  `define Go0 3'b001
-  `define Go1 3'b010
-  `define Go2 3'b011
-  `define Go3 3'b100
-  `define PreGo 3'b101
+  `define Wait 3'b000 // Default State
+  `define Go0 3'b001 // Read the first value
+  `define Go1 3'b010 // Read the second value
+  `define Go2 3'b011 // Read the third value
+  `define Go3 3'b100 // Read the fourth value and write the max to memory
+  `define PreGo 3'b101 // Prepare the read
 
   maxReg32 maxReg0(clk, reset, load0, slave_writedata, word0); // start if written to
   maxReg32 maxReg1(clk, reset, load1, slave_writedata, word1); // address to read from
@@ -42,6 +42,7 @@ module maxController(input clk, input reset,
   always @(*) begin
     load0 = 1'b0; load1 = 1'b0; load2 = 1'b0; load3 = 1'b0; load4 = 1'b0;
     slaveReadData = 32'b0;
+    // Handle Writes
     if (slave_write) begin
       case (slave_address)
         3'b000: load0 = 1'b1;
@@ -52,6 +53,7 @@ module maxController(input clk, input reset,
         default:;
       endcase
     end
+    // Handle Reads
     else if (slave_read) begin
       case (slave_address)
         3'b000: slaveReadData = word0;
@@ -82,20 +84,23 @@ module maxController(input clk, input reset,
       `Go0: begin
         masterAddress = word1 + (numCols + 1'b1) + numRows * word4 + numLayer * word4 * word4;
         masterRead = 1'b1;
-        dataValid = 1'b1;
         nextState = `Go1;
+        if (waiter)
+          dataValid = 1'b1;
       end
       `Go1: begin
         masterAddress = word1 + numCols + (numRows + 1'b1) * word4 + numLayer * word4 * word4;
         masterRead = 1'b1;
-        dataValid = 1'b1;
         nextState = `Go2;
+        if (waiter)
+          dataValid = 1'b1;
       end
       `Go2: begin
         masterAddress = word1 + (numCols + 1'b1) + (numRows + 1'b1) * word4 + numLayer * word4 * word4;
         masterRead = 1'b1;
-        dataValid = 1'b1;
         nextState = `Go3;
+        if (waiter)
+          dataValid = 1'b1;
       end
       `Go3: begin
         masterAddress = word2 + numOps;
@@ -108,8 +113,9 @@ module maxController(input clk, input reset,
       `PreGo: begin
         masterAddress = word1 + numCols + numRows * word4 + numLayer * word4 * word4;
         masterRead = 1'b1;
-        dataValid = 1'b1;
         nextState = `Go0;
+        if (waiter)
+          dataValid = 1'b1;
       end
       default: nextState = `Wait;
     endcase
@@ -118,6 +124,7 @@ module maxController(input clk, input reset,
   // Sequential Logic
   always @(posedge clk, negedge reset) begin
     if (!reset) begin
+      // Reset Values
       waiter = 1'b0;
       numRows = 8'b0;
       numCols = 8'b0;
@@ -126,6 +133,7 @@ module maxController(input clk, input reset,
       presentState = `Wait;
     end
     else begin
+      // If we are starting a new cycle increment the position values
       if (nextState == `PreGo && presentState != `Wait) begin
         numCols = numCols + 2'b10;
         numOps = numOps + 1'b1;
@@ -138,6 +146,7 @@ module maxController(input clk, input reset,
           end
         end
       end
+      // Reset values if returning to default state
       if (nextState == `Wait) begin
         numRows = 8'b0;
         numCols = 8'b0;

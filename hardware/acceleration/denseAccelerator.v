@@ -3,10 +3,10 @@ module denseAccelerator(input clk, input reset, input [31:0] dataIn,
                         output [31:0] dataOut);
 
   // Define State Ids
-  `define RESET 2'b00
-  `define ACT 2'b01
-  `define WEIGHT 2'b10
-  `define BIAS 2'b11
+  `define RESET 2'b00 // Default State
+  `define ACT 2'b01 // The activation is read into a register
+  `define WEIGHT 2'b10 // The weight is read and multiplied with the corresponding activation
+  `define BIAS 2'b11 // The bias is added once the activations and weights have been multiplied
 
   wire [1:0] present_state;
   wire loadAct, loadWeight;

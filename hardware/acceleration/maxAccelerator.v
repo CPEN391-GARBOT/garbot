@@ -5,6 +5,7 @@ module maxAccelerator(input clk, input reset, input [31:0] dataIn,
   reg [31:0] max;
   assign dataOut = max;
 
+  // Cycle through a 2x2 set of values and determine the max
   always @(posedge clk, negedge reset) begin
     if (!reset) begin
       max = 32'b0;
@@ -21,4 +22,4 @@ module maxAccelerator(input clk, input reset, input [31:0] dataIn,
     end
   end
 
-endmodule 
+endmodule

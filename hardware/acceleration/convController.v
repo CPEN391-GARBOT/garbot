@@ -21,15 +21,15 @@ module convController(input clk, input reset,
   reg [2:0] presentState, nextState;
 
   // State Definitions
-  `define Wait 3'b000
+  `define Wait 3'b000 // Default State
   `define PreLoad 3'b001
-  `define Filter 3'b010
-  `define Calc 3'b011
-  `define Read 3'b100
-  `define Write 3'b101
+  `define Filter 3'b010 // Input the filter values
+  `define Calc 3'b011 // Perform the dot product operation
+  `define Read 3'b100 // Read the previously stored value
+  `define Write 3'b101 // Write the result to SDRAM
 
   assign outLayerSize = (word6 - 2) * (word6 - 2);
-  assign master_address = masterAddress * 3'b100;
+  assign master_address = masterAddress * 3'b100; // Each entry is 32 bits which is 4 bytes
   assign master_read = masterRead;
   assign master_write = masterWrite;
   assign master_writedata = masterWriteData;
@@ -50,6 +50,7 @@ module convController(input clk, input reset,
     load0 = 1'b0; load1 = 1'b0; load2 = 1'b0; load3 = 1'b0; load4 = 1'b0;
     load5 = 1'b0; load6 = 1'b0;
     slaveReadData = 32'b0;
+    // Handle Writes
     if (slave_write) begin
       case (slave_address)
         3'b000: load0 = 1'b1;
@@ -62,6 +63,7 @@ module convController(input clk, input reset,
         default:;
       endcase
     end
+    // Handle Reads
     else if (slave_read) begin
       case (slave_address)
         3'b000: slaveReadData = word0;
@@ -94,12 +96,14 @@ module convController(input clk, input reset,
           nextState = `Wait;
       end
       `PreLoad: begin
-        dataValid = 1'b1;
+        if (waiter)
+          dataValid = 1'b1;
         filter = 1'b1;
         nextState = `Filter;
       end
       `Filter: begin
-        dataValid = 1'b1;
+        if (waiter)
+          dataValid = 1'b1;
         masterRead = 1'b1;
         masterAddress = word2 + count + numLayer * 9 + numFilter * word4 * 9;
         if (count + 1'b1 < 9) begin
@@ -111,7 +115,8 @@ module convController(input clk, input reset,
         end
       end
       `Calc: begin
-        dataValid = 1'b1;
+        if (waiter)
+          dataValid = 1'b1;
         masterRead = 1'b1;
         masterAddress = word1 + countCol + countRow * word6 +
                         numCol + numRow * word6 + numLayer * word6 * word6;
@@ -142,8 +147,9 @@ module convController(input clk, input reset,
         end
         else begin
           nextState = `Filter;
-          dataValid = 1'b1;
           filter = 1'b1;
+          if (waiter)
+            dataValid = 1'b1;
         end
       end
     default: nextState = `Wait;
@@ -153,17 +159,21 @@ module convController(input clk, input reset,
   // Sequential Logic
   always @(posedge clk, negedge reset) begin
     if (!reset) begin
+      // Reset Values
       numRow = 7'b0; numCol = 7'b0; numLayer = 7'b0; numFilter = 7'b0;
       count = 4'b0; countRow = 4'b0; countCol = 4'b0; numOps = 16'b0; waiter = 1'b0;
       presentState = `Wait;
     end
     else begin
+      // Increment the count which tracks how many filter values have been read
       if (nextState == `Filter && presentState == `Filter) begin
         count = count + 1'b1;
       end
+      // Reset count once the filters have been read into memory
       if (nextState == `Calc && presentState == `Filter) begin
         count = 4'b0;
       end
+      // Increment the proper counts to keep track of which output value is being calculated
       if (nextState == `Calc && presentState == `Calc) begin
         count = count + 1'b1;
         countCol = countCol + 1'b1;
@@ -172,6 +182,7 @@ module convController(input clk, input reset,
           countRow = countRow + 1'b1;
         end
       end
+      // Reset the counts and increment the position values
       if (nextState == `Read && presentState == `Calc) begin
         countCol = 4'b0;
         countRow = 4'b0;
@@ -188,6 +199,7 @@ module convController(input clk, input reset,
           end
         end
       end
+      // If inputting a new filter increment either numLayer or numFilter
       if (nextState == `Filter && presentState == `Write) begin
         numOps = 16'b0;
         numLayer = numLayer + 1'b1;
@@ -196,6 +208,7 @@ module convController(input clk, input reset,
           numFilter = numFilter + 1'b1;
         end
       end
+      // Reset values when returning to default state
       if (nextState == `Wait && presentState == `Write) begin
         numRow = 7'b0; numCol = 7'b0; numLayer = 7'b0; numFilter = 7'b0;
         count = 4'b0; countRow = 4'b0; countCol = 4'b0; numOps = 16'b0;
