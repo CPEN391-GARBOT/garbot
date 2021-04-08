@@ -8,8 +8,8 @@
 #define LW_REGS_SPAN ( 0x00200000 )
 #define LW_REGS_MASK ( LW_REGS_SPAN - 1 )
 
-#define BUTTON_BASE 0x10
-#define REAL_LED_BASE 0x20
+#define BUTTON_BASE 0x50
+#define REAL_LED_BASE 0x00
 #define CONV_OFFSET 0x420 //needs to be changed
 #define POOLING_OFFSET 0x420 //needs to be changed
 #define DENSE_OFFSET 0x420 //needs to be changed
@@ -215,11 +215,11 @@ int start_accelerators(void) {
 	second_addr_physical = HPS_BRIDGE_BASE + SDRAM_OFFSET + SECOND_BUFFER;
 
 
-	/* Call convolutional network where we have a 3x128x128 photo located at photo_addr 
+	/* Call convolutional network where we have a 3x128x128 photo located at photo_addr
 	 *
-	 * 
+	 *
 	 * Weights are located at sdram_addr_physical, where we have (3x3x3x64x4 bytes = 6,912 bytes)
-	 * 
+	 *
 	 * Read from photo, write to first_addr_physical
 	 */
 
@@ -233,7 +233,7 @@ int start_accelerators(void) {
 
 
 	/**
-	 * Call max pooling layer where 
+	 * Call max pooling layer where
 	 *  -we read from first_addr_physical
 	 *  -we write to second_addr_physical
 	 *  -64 layers
@@ -252,7 +252,7 @@ int start_accelerators(void) {
 	 * input is at second_addr_physical
 	 * output is first_addr_physical
 	 * weights offset: (3x3x3x64 + 64) x 4bytes/weight = 7168bytes = 0x1c00
-	 * 
+	 *
 	 */
 
 	*(convolution_virtual+1) = second_addr_physical;
@@ -264,7 +264,7 @@ int start_accelerators(void) {
 	*(convolution_virtual+0) = 0;
 
 	/**
-	 * Call max pooling layer where 
+	 * Call max pooling layer where
 	 *  -we read from first_addr_physical
 	 *  -we write to second_addr_physical
 	 *  -64 layers
@@ -282,7 +282,7 @@ int start_accelerators(void) {
 	 * input is at second_addr_physical
 	 * output is first_addr_physical
 	 * weights offset: (3x3x3x64 + 64 + 3x3x64x64 + 64) * 4bytes/weight = 154880bytes = 0x25d00
-	 * 
+	 *
 	 */
 
 	*(convolution_virtual+1) = second_addr_physical;
@@ -294,7 +294,7 @@ int start_accelerators(void) {
 	*(convolution_virtual+0) = 0;
 
 	/**
-	 * Call max pooling layer where 
+	 * Call max pooling layer where
 	 *  -we read from first_addr_physical
 	 *  -we write to second_addr_physical
 	 *  -64 layers
@@ -308,7 +308,7 @@ int start_accelerators(void) {
 	*(pooling_virtual+0) = 0;
 
 	/**
-	 * Call dense layer where 
+	 * Call dense layer where
 	 *  -read from second buffer
 	 *  -write to first buffer
 	 *  -weights offset: (3x3x3x64 + 64 + 3x3x64x64 + 64 + 3x3x64x64 + 64) * 4bytes/weight = 302592bytes = 0x49e00
@@ -326,7 +326,7 @@ int start_accelerators(void) {
 
 
 	/**
-	 * Call dense layer where 
+	 * Call dense layer where
 	 *  -read from first buffer
 	 *  -write to second buffer
 	 *  -weights offset: (3x3x3x64 + 64 + 3x3x64x64 + 64 + 3x3x64x64 + 64 + 12544x64 + 64) * 4bytes/weight = 3514112bytes = 0x359f00
@@ -452,7 +452,7 @@ int send_wifi_response(void) {
 
 /**
  * Turn leds on
- * 
+ *
  * Returns -1 on memory error, 0 on success
  */
 int turn_leds_on(void) {
@@ -489,7 +489,7 @@ int turn_leds_on(void) {
 
 /**
  * Turn leds off
- * 
+ *
  * Returns -1 on memory error, 0 on success
  */
 int turn_leds_off(void) {
@@ -526,7 +526,7 @@ int turn_leds_off(void) {
 
 /**
  * Read the weight/value at sdram_base + offset
- * 
+ *
  * Returns value in memory
  */
 int read_sdram(int offset) {
@@ -572,4 +572,3 @@ int main(void) {
 	//send_wifi_response();
 
 }
-
