@@ -27,19 +27,23 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.DefaultValueFormatter;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     private RequestQueue queue;
-    private static final String STATS_URL = "http://c5ca9fbb580e.ngrok.io/garbage/";
+    private static String STATS_URL = "http://e348951796ba.ngrok.io/garbage/";
     private static String username;
 
     private Button day, week, month, year;
     private Button manualOverride;
     private PieChart pieChart;
+
+    private TimeFrameSetter timeFrameSetter = new TimeFrameSetter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,25 +69,25 @@ public class MainActivity extends AppCompatActivity {
         day.setOnClickListener(view -> {
             resetButtons();
             day.setBackgroundColor(getResources().getColor(R.color.green_dark));
-            //retrieveStats("day");
+            populatePieChart(timeFrameSetter.getGarbage("Day"), timeFrameSetter.getPaper("Day"), timeFrameSetter.getCompost("Day"), timeFrameSetter.getRecycling("Day"));
         });
         week = findViewById(R.id.week);
         week.setOnClickListener(view -> {
             resetButtons();
             week.setBackgroundColor(getResources().getColor(R.color.green_dark));
-           //retrieveStats("week");
+            populatePieChart(timeFrameSetter.getGarbage("Week"), timeFrameSetter.getPaper("Week"), timeFrameSetter.getCompost("Week"), timeFrameSetter.getRecycling("Week"));
         });
         month = findViewById(R.id.month);
         month.setOnClickListener(view -> {
             resetButtons();
             month.setBackgroundColor(getResources().getColor(R.color.green_dark));
-            //retrieveStats("month");
+            populatePieChart(timeFrameSetter.getGarbage("Month"), timeFrameSetter.getPaper("Month"), timeFrameSetter.getCompost("Month"), timeFrameSetter.getRecycling("Month"));
         });
         year = findViewById(R.id.year);
         year.setOnClickListener(view -> {
             resetButtons();
             year.setBackgroundColor(getResources().getColor(R.color.green_dark));
-            //retrieveStats("year");
+            populatePieChart(timeFrameSetter.getGarbage("Year"), timeFrameSetter.getPaper("Year"), timeFrameSetter.getCompost("Year"), timeFrameSetter.getRecycling("Year"));
         });
 
         manualOverride = findViewById(R.id.manual_btn);
@@ -93,23 +97,32 @@ public class MainActivity extends AppCompatActivity {
             startActivity(manualCIntent);
         });
 
-        retrieveStats("day");
+        retrieveStats();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
                 new IntentFilter("newStats"));
     }
 
     // Retrieves stats from database
-    private void retrieveStats(String timePeriod) { // TODO: Allow history of garbage to be displayed
+    private void retrieveStats() {
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, STATS_URL+username, null, response -> {
             if (response != null) {
                 try {
-                    int garbage = (Integer) response.get("garbage");
-                    int paper = (Integer) response.get("paper");
-                    int compost = (Integer) response.get("compost");
-                    int plastic = (Integer) response.get("plastic");
+                    JSONArray statsJson = response.getJSONArray("stats");
 
-                    populatePieChart(garbage, paper, compost, plastic);
+                    ArrayList<Integer> stats = new ArrayList<>();
+                    ArrayList<Long> timestamps = new ArrayList<>();
+                    for (int x = 0; x < statsJson.length(); x ++) {
+                        JSONObject trash = statsJson.getJSONObject(x);
+                        stats.add(trash.getInt("can"));
+                        timestamps.add(trash.getLong("timestamp"));
+                    }
+                    timeFrameSetter.setTimeFrames(stats, timestamps);
+
+                    resetButtons();
+                    day.setBackgroundColor(getResources().getColor(R.color.green_dark));
+
+                    populatePieChart(timeFrameSetter.getGarbage("Day"), timeFrameSetter.getPaper("Day"), timeFrameSetter.getCompost("Day"), timeFrameSetter.getRecycling("Day"));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -137,10 +150,10 @@ public class MainActivity extends AppCompatActivity {
         colours.add(Color.BLUE);
 
         ArrayList<Integer> textColours = new ArrayList<>();
-        colours.add(Color.WHITE);
-        colours.add(Color.BLACK);
-        colours.add(Color.WHITE);
-        colours.add(Color.WHITE);
+        textColours.add(Color.WHITE);
+        textColours.add(Color.BLACK);
+        textColours.add(Color.WHITE);
+        textColours.add(Color.WHITE);
 
 
         PieDataSet pieDataSet = new PieDataSet(trashTypes, "");
@@ -156,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
 
         PieData pieData = new PieData(pieDataSet);
         pieChart.setData(pieData);
+        pieChart.getDescription().setEnabled(false);
         pieChart.invalidate();
     }
 
@@ -172,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d("receiver", "Got broadcast ");
-            retrieveStats("day");
+            retrieveStats();
         }
     };
 
