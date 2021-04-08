@@ -330,9 +330,9 @@ int start_accelerators(void) {
 	int maxIndex = 0;
 
 	for (x = 0; x < 7; x++) {
-		unsigned int absolute = *(second_addr_physical + x) & FINAL_ABSOLUTE_MASK;
+		unsigned int absolute = *(second_addr_virtual + x) & FINAL_ABSOLUTE_MASK;
 
-		if (*(second_addr_physical + x) & FINAL_SIGN_MASK) {
+		if (*(second_addr_virtual + x) & FINAL_SIGN_MASK) {
 			//this number is negative
 			value = -1 * absolute;
 		} else {
