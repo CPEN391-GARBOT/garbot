@@ -30,6 +30,9 @@
 #define PAPER 3
 #define RECYCLING 4
 
+#define NUM_WEIGHTS 3515932 / 4
+#define NUM_PIXEL_VALUES 196608 / 4
+
 
 /**
  * File writes file located at ./weights.bin into memory at the base of the SDRAM
@@ -72,7 +75,7 @@ int load_weights(void) {
 	}
 
 	//iterate over entire weights file, note need to make size not hardcoded magic num...
-	for (x = 0; x < 3515932 / 4; x++) {
+	for (x = 0; x < NUM_WEIGHTS; x++) {
 		fread(&buffer, sizeof(int), 1, binFile);
 		*(sdram_addr + x) = buffer;
 	}
@@ -127,7 +130,7 @@ int load_photo() {
 	}
 
 	//iterate over entire photo, note need to make size not hardcoded magic num...
-	for (x = 0; x < 196608 / 4; x++) {
+	for (x = 0; x < NUM_PIXEL_VALUES; x++) {
 		fread(&buffer, sizeof(int), 1, binFile);
 		*(photo_addr + x) = buffer;
 	}
