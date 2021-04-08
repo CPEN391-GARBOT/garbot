@@ -13,10 +13,8 @@ router.get("/:userID", async (req,res,next) => {
        res.json({});
    } else {
        res.json({
-       garbage: doc.data().garbage,
-       compost: doc.data().compost,
-       paper: doc.data().paper,
-       plastic: doc.data().plastic,
+       stats: doc.data().stats,
+       timestamps: doc.data().timestamps
        });
    }
 
@@ -27,35 +25,33 @@ router.get("/:userID", async (req,res,next) => {
 router.post("/:canID", async (req,res,next) => {
    const id = req.params.canID;
    const user = req.body.username;
+   const quantity = req.body.quantity;
+   const timestamp = parseInt(req.body.timestamp);
    const ref = app.db.collection('garbage').doc(user);
-   if(id == "1"){
+   var j = 0;
+   timestamp
+   for (i = 0; i < parseInt(quantity); i++) {
        const result = await ref.update({
-           garbage: app.admin.firestore.FieldValue.increment(1)
+           stats: app.admin.firestore.FieldValue.arrayUnion({can: id, timestamp:timestamp+j})
            });
+           j += .17;
+        }
+   if(id == "1"){
            res.json({});
            piblaster.setPwm(23,.1); 
            await new Promise(resolve => setTimeout(resolve, 50));
            piblaster.setPwm(23,0);
    } else if (id == "2") {
-       const result = await ref.update({
-           compost: app.admin.firestore.FieldValue.increment(1)
-           });
            res.json({});
            piblaster.setPwm(22,.1);
            await new Promise(resolve => setTimeout(resolve, 50));
            piblaster.setPwm(22,0);
    } else if (id == "3"){
-        const result = await ref.update({
-           paper: app.admin.firestore.FieldValue.increment(1)
-           });
            res.json({});
            piblaster.setPwm(18,.1);
            await new Promise(resolve => setTimeout(resolve, 50));
            piblaster.setPwm(18,0);
    } else if (id == "4"){
-       const result = await ref.update({
-           plastic: app.admin.firestore.FieldValue.increment(1)
-           });
            res.json({});
            piblaster.setPwm(4,.2);
            await new Promise(resolve => setTimeout(resolve, 60));
