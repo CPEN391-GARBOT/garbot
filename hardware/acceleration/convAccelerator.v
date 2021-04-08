@@ -25,10 +25,27 @@ module convAccelerator(input clk, input reset, input [31:0] dataIn,
   convReg32 regFil8(clk, reset, loadFil8, dataInSigned, outFil8);
   convReg32 regFil9(clk, reset, loadFil9, dataInSigned, outFil9);
 
-  always @(posedge clk, negedge reset) begin
+  always @(*) begin
     loadFil1 = 1'b0; loadFil2 = 1'b0; loadFil3 = 1'b0;
     loadFil4 = 1'b0; loadFil5 = 1'b0; loadFil6 = 1'b0;
     loadFil7 = 1'b0; loadFil8 = 1'b0; loadFil9 = 1'b0;
+    if (filter) begin
+      case (count)
+        4'b0001: loadFil1 = 1'b1;
+        4'b0010: loadFil2 = 1'b1;
+        4'b0011: loadFil3 = 1'b1;
+        4'b0100: loadFil4 = 1'b1;
+        4'b0101: loadFil5 = 1'b1;
+        4'b0110: loadFil6 = 1'b1;
+        4'b0111: loadFil7 = 1'b1;
+        4'b1000: loadFil8 = 1'b1;
+        4'b1001: loadFil9 = 1'b1;
+        default: ;
+      endcase
+    end
+  end
+
+  always @(posedge clk, negedge reset) begin
     if (!reset) begin
       // Reset all values to 0
       count = 4'b0;
@@ -41,55 +58,46 @@ module convAccelerator(input clk, input reset, input [31:0] dataIn,
       case(count)
         4'b0000: begin
           if (dataValid) begin
-            loadFil1 = 1'b1;
             count <= count + 1'b1;
           end
         end
         4'b0001: begin
           if (dataValid) begin
-            loadFil2 = 1'b1;
             count <= count + 1'b1;
           end
         end
         4'b0010: begin
           if (dataValid) begin
-            loadFil3 = 1'b1;
             count <= count + 1'b1;
           end
         end
         4'b0011: begin
           if (dataValid) begin
-            loadFil4 = 1'b1;
             count <= count + 1'b1;
           end
         end
         4'b0100: begin
           if (dataValid) begin
-            loadFil5 = 1'b1;
             count <= count + 1'b1;
           end
         end
         4'b0101: begin
           if (dataValid) begin
-            loadFil6 = 1'b1;
             count <= count + 1'b1;
           end
         end
         4'b0110: begin
           if (dataValid) begin
-            loadFil7 = 1'b1;
             count <= count + 1'b1;
           end
         end
         4'b0111: begin
           if (dataValid) begin
-            loadFil8 = 1'b1;
             count <= count + 1'b1;
           end
         end
         4'b1000: begin
           if (dataValid) begin
-            loadFil9 = 1'b1;
             count <= count + 1'b1;
           end
         end

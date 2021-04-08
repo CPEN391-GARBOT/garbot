@@ -59,6 +59,7 @@ module convController(input clk, input reset,
         3'b100: load4 = 1'b1;
         3'b101: load5 = 1'b1;
         3'b110: load6 = 1'b1;
+        default:;
       endcase
     end
     else if (slave_read) begin
@@ -70,6 +71,7 @@ module convController(input clk, input reset,
         3'b100: slaveReadData = word4;
         3'b101: slaveReadData = word5;
         3'b110: slaveReadData = word6;
+        default: slaveReadData = 32'b0;
       endcase
     end
   end
@@ -122,12 +124,12 @@ module convController(input clk, input reset,
       end
       `Read: begin
         masterRead = 1'b1;
-        masterAddress = word3 + numOps + outLayerSize * numFilter;
+        masterAddress = word3 + numOps + outLayerSize[31:0] * numFilter;
         nextState = `Write;
       end
       `Write: begin
         masterWrite = 1'b1;
-        masterAddress = word3 + numOps + outLayerSize * numFilter;
+        masterAddress = word3 + numOps + outLayerSize[31:0] * numFilter;
         if (numLayer == 1'b0)
           masterWriteData = convOut;
         else
@@ -144,6 +146,7 @@ module convController(input clk, input reset,
           filter = 1'b1;
         end
       end
+    default: nextState = `Wait;
     endcase
   end
 

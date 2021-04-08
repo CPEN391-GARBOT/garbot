@@ -52,6 +52,7 @@ module denseController(input clk, input reset,
         3'b011: load3 = 1'b1;
         3'b100: load4 = 1'b1;
         3'b101: load5 = 1'b1;
+        default: ;
       endcase
     end
     else if (slave_read) begin
@@ -62,6 +63,7 @@ module denseController(input clk, input reset,
         3'b011: slaveReadData = word3;
         3'b100: slaveReadData = word4;
         3'b101: slaveReadData = word5;
+        default: slaveReadData = 32'b0;
       endcase
     end
   end
