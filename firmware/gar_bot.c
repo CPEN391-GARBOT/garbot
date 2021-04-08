@@ -35,8 +35,6 @@
  * File writes file located at ./weights.bin into memory at the base of the SDRAM
  * Returns -1 if error occurs, 0 on success
  *
- * Status: seems to work, poor code quality
- *
  */
 int load_weights(void) {
 	volatile unsigned int *sdram_addr=NULL;
@@ -90,7 +88,6 @@ int load_weights(void) {
  * Returns -1 if error occurs, 0 on success
  * Very similar to load_weights()
  *
- * Status: seems to work, poor code quality
  *
  */
 int load_photo() {
@@ -498,6 +495,40 @@ int turn_leds_off(void) {
 	*leds = 0x0;
 
 	return 0;
+}
+
+/**
+ * Read the weight/value at sdram_base + offset
+ * 
+ * Returns value in memory
+ */
+int read_sdram(int offset) {
+	volatile unsigned int *sdram_addr=NULL;
+	void *virtual_base_HW;
+	int fd;
+
+	// Open /dev/mem
+	if( ( fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) ) ) == -1 ) {
+		printf( "ERROR: could not open \"/dev/mem\"...\n" );
+		return( -1 );
+	}
+
+
+	// get virtual addr of the HPS-FPGA bus
+	virtual_base_HW = mmap( NULL, HPS_BRIDGE_SPAN, ( PROT_READ | PROT_WRITE ),
+			MAP_SHARED, fd, HPS_BRIDGE_BASE );
+	if( virtual_base_HW == MAP_FAILED ) {
+		printf( "ERROR: mmap() failed...\n" );
+		close( fd );
+		return(-1);
+	}
+
+	// Get address of SDRAM
+	sdram_addr=(unsigned int *)(virtual_base_HW + (( SDRAM_OFFSET ) & (
+			HPS_BRIDGE_MASK ) ));
+
+
+	return *(sdram_addr + offset);
 }
 
 
