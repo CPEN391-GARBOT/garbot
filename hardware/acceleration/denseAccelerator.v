@@ -10,13 +10,13 @@ module denseAccelerator(input clk, input reset, input [31:0] dataIn,
 
   wire [1:0] present_state;
   wire loadAct, loadWeight;
-  wire [31:0] outWeight, outAct;
-  reg [63:0] product;
-  reg [31:0] shifted_product, sum;
+  wire signed [31:0] outWeight, outAct;
+  reg signed [63:0] product;
+  reg signed [31:0] shifted_product, sum;
   assign dataOut = sum;
+  assign outWeight = dataIn;
 
-  reg32 activation(clk, reset, loadAct, dataIn, outAct);
-  reg32 weight(clk, reset, loadWeight, dataIn, outWeight);
+  denseReg32 activation(clk, reset, loadAct, dataIn, outAct);
   SM sm(clk, reset, dataValid, length, loadAct, loadWeight, present_state);
 
   always @(posedge clk, negedge reset) begin
@@ -26,8 +26,13 @@ module denseAccelerator(input clk, input reset, input [31:0] dataIn,
       sum = 32'b0;
     end
     else begin
-      if (present_state == `WEIGHT) begin
-        product = outAct * dataIn;
+      if (present_state == `RESET) begin
+        product = 64'b0;
+        shifted_product = 32'b0;
+        sum = 32'b0;
+      end
+      else if (present_state == `WEIGHT) begin
+        product = outAct * outWeight;
         shifted_product = product >>> 24;
         sum = sum + shifted_product;
       end
@@ -36,7 +41,7 @@ module denseAccelerator(input clk, input reset, input [31:0] dataIn,
     end
   end
 
-endmodule: denseAccelerator
+endmodule
 
 module SM (input clk, input reset, input dataValid, input [31:0] length,
             output loadA, output loadW, output [1:0] state);
@@ -63,6 +68,8 @@ module SM (input clk, input reset, input dataValid, input [31:0] length,
     else begin
       if (next_state == `ACT && present_state == `WEIGHT)
         count = count + 1'b1;
+      else if (next_state == `RESET)
+        count = 32'b0001;
       present_state = next_state;
     end
   end
@@ -110,10 +117,10 @@ module SM (input clk, input reset, input dataValid, input [31:0] length,
     endcase
   end
 
-endmodule: SM
+endmodule
 
 // 32-bit register
-module reg32(input clk, input reset, input load,
+module denseReg32(input clk, input reset, input load,
             input [31:0] in, output [31:0] out);
 
   reg [31:0] currVal;
@@ -128,7 +135,7 @@ module reg32(input clk, input reset, input load,
       currVal <= out;
   end
 
-endmodule: reg32
+endmodule
 
 module vDFF(clk,D,Q);
   parameter n=1;
