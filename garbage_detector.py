@@ -34,6 +34,8 @@ import importlib.util
 import pysftp
 from fxpmath import Fxp
 from PIL import Image
+import RPi.GPIO as GPIO
+GPIO.setmode(GPIO.BCM)
 
 # Define VideoStream class to handle streaming of video from webcam in separate processing thread
 # Source - Adrian Rosebrock, PyImageSearch: https://www.pyimagesearch.com/2015/12/28/increasing-raspberry-pi-fps-with-python-and-opencv/
@@ -106,9 +108,32 @@ def decimal_converter(num):
         num /= 10
     return num
 
+def open_garb():
+    gMotor.ChangeDutyCycle(5)
+    time.sleep(7)
+    gMotor.ChangeDutyCycle(10)
+
+def open_comp():
+    cMotor.ChangeDutyCycle(5)
+    sleep(.1)
+    cMotor.ChangeDutyCycle(0)
+    sleep(7)
+    cMotor.ChangeDutyCycle(10)
+    sleep(.1)
+    cMotor.ChangeDutyCycle(0)
+
+def open_pap():
+    paMotor.ChangeDutyCycle(5)
+    time.sleep(7)
+    paMotor.ChangeDutyCycle(10)
+    
+def open_plas():
+    plMotor.ChangeDutyCycle(5)
+    time.sleep(7)
+    plMotor.ChangeDutyCycle(10)
+
 
 def load_file():
-    time.sleep(1)
     path = "/home/pi/Desktop/garbage.jpg"
     file = Image.open("/home/pi/Desktop/garbage.jpg")
     new_file = file.crop((160,0,1120,720))
@@ -138,7 +163,7 @@ def load_file():
     print(len(flat_array))
 
 
-    with open("photo.bin", "ab") as myfile:
+    with open("garbage.bin", "ab") as myfile:
         for pixel in flat_array:
             test = float_bin(abs(pixel), 24)
             if pixel >= 0:
@@ -152,13 +177,42 @@ def load_file():
 
     with pysftp.Connection('169.254.184.14', username='root', password='password', port=22) as sftp:
         print("Connection successfully established")
-    
-        localpath = '/home/pi/pigarbot/garbage.bin'
-        remotepath = '/home/root/Garbot/Photo/garbage.bin'
-    
+        
+        localpath = "/home/pi/garbot/garbage.bin"
+        remotepath = "garbage.bin"    
         sftp.put(localpath, remotepath)
-    
+        
+        print("getting here")
+        sentinal = 1
+        while sentinal == 1:
+            if sftp.exists('/home/pi/Garbot/one.txt'):
+                open_garb()
+                sentinal = 0
+            if sftp.exists('/home/pi/Garbot/two.txt'):
+                open_comp()
+                sentinal = 0
+            if sftp.exists('/home/pi/Garbot/three.txt'):
+                open_pap()
+                sentinal = 0
+            if sftp.exists('home/pi/Garbot/four.txt'):
+                open_plas()
+                sentinal = 0
+            
+#start up the servos
+gServo = GPIO.setup(5, GPIO.OUT)
+gMotor = GPIO.PWM(5, 50)
+#the continuous one
+cServo = GPIO.setup(6, GPIO.OUT)
+cMotor = GPIO.PWM(6, 50)
+plServo = GPIO.setup(13, GPIO.OUT)
+plMotor = GPIO.PWM(13, 50)
+paServo = GPIO.setup(19, GPIO.OUT)
+paMotor = GPIO.PWM(19, 50)
 
+gMotor.start(0)
+cMotor.start(0)
+plMotor.start(0)
+paMotor.start(0)
 # Define and parse input arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('--modeldir', help='Folder the .tflite file is located in',
@@ -267,6 +321,7 @@ while True:
                 cv2.imwrite('/home/pi/Desktop/garbage.jpg', videostream.read())
                 load_file()
                 time.sleep(2)
+                os.remove('garbage.bin')
                 captured = True
             
 
