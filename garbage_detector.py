@@ -112,25 +112,29 @@ def open_garb():
     gMotor.ChangeDutyCycle(5)
     time.sleep(7)
     gMotor.ChangeDutyCycle(10)
+    gMotor.ChangeDutyCycle(0)
 
 def open_comp():
     cMotor.ChangeDutyCycle(5)
-    sleep(.1)
+    time.sleep(.1)
     cMotor.ChangeDutyCycle(0)
-    sleep(7)
+    time.sleep(7)
     cMotor.ChangeDutyCycle(10)
-    sleep(.1)
+    time.sleep(.1)
     cMotor.ChangeDutyCycle(0)
 
 def open_pap():
     paMotor.ChangeDutyCycle(5)
     time.sleep(7)
     paMotor.ChangeDutyCycle(10)
+    time.sleep(1)
+    paMotor.ChangeDutyCycle(0)
     
 def open_plas():
     plMotor.ChangeDutyCycle(5)
     time.sleep(7)
     plMotor.ChangeDutyCycle(10)
+    plMotor.ChangeDutyCycle(0)
 
 
 def load_file():
@@ -176,25 +180,25 @@ def load_file():
             myfile.write(data)
 
     with pysftp.Connection('169.254.184.14', username='root', password='password', port=22) as sftp:
-        print("Connection successfully established")
+        print("Connection successfully established")   
+        localpath = '/home/pi/garbot/garbage.bin'
+        remotepath = '/home/root/Garbot/garbage.bin'
+    
+        sftp.put(localpath, remotepath)  
         
-        localpath = "/home/pi/garbot/garbage.bin"
-        remotepath = "garbage.bin"    
-        sftp.put(localpath, remotepath)
-        
-        print("getting here")
+        sftp.cwd('Garbot')
         sentinal = 1
         while sentinal == 1:
-            if sftp.exists('/home/pi/Garbot/one.txt'):
+            if sftp.exists('one.txt'):
                 open_garb()
                 sentinal = 0
-            if sftp.exists('/home/pi/Garbot/two.txt'):
+            if sftp.exists('two.txt'):
                 open_comp()
                 sentinal = 0
-            if sftp.exists('/home/pi/Garbot/three.txt'):
+            if sftp.exists('three.txt'):
                 open_pap()
                 sentinal = 0
-            if sftp.exists('home/pi/Garbot/four.txt'):
+            if sftp.exists('four.txt'):
                 open_plas()
                 sentinal = 0
             
