@@ -2,7 +2,7 @@
 #
 # Author: Evan Juras
 # Date: 10/27/19
-# Description: 
+# Description:
 # This program uses a TensorFlow Lite model to perform object detection on a live webcam
 # feed. It draws boxes and scores around the objects of interest in each frame from the
 # webcam. To improve FPS, the webcam object runs in a separate thread from the main program.
@@ -35,6 +35,8 @@ import pysftp
 from fxpmath import Fxp
 from PIL import Image
 import RPi.GPIO as GPIO
+import requests
+
 GPIO.setmode(GPIO.BCM)
 
 # Define VideoStream class to handle streaming of video from webcam in separate processing thread
@@ -47,7 +49,7 @@ class VideoStream:
         ret = self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         ret = self.stream.set(3,resolution[0])
         ret = self.stream.set(4,resolution[1])
-            
+
         # Read first frame from the stream
         (self.grabbed, self.frame) = self.stream.read()
 
@@ -81,33 +83,55 @@ class VideoStream:
 
 IMG_SIZE = 128
 
+############### RESTful API calls to increase garbage stats ###############
+#parameter stats represents what kind of garbage
+# stats=1 : garbage
+# stats=2 : compost
+# stats=3 : paper
+# stats=4 : plastic
+def inc_stat(stat):
+    url = 'http://192.168.1.87:3000/garbage/'
+    body = {"username" : "garbot", "quantity" : "1", "timestamp" : "1617858077"}
+
+    if stat == 1:
+        requests.post(url + '1', json=body)
+    elif stat == 2:
+        requests.post(url + '2', json=body)
+    elif stat == 3:
+        requests.post(url + '3', json=body)
+    elif stat == 4:
+        requests.post(url + '4', json=body)
+
+###############Helper Functions for the .jpg to .bin file transformation############
 # Takes a floating point number and decimal places and returns a binary
 # fixed point representation
 def float_bin(number, places = 24):
-  
+
     if number.is_integer() :
         whole = int(number)
         return f'{whole:07b}' + "000000000000000000000000"
     whole, dec = str(number).split(".")
-  
+
     whole = int(whole)
     dec = int (dec)
-  
+
     # Convert to 7 bit binary
     res = f'{whole:07b}'
-  
+
     for x in range(places):
         whole, dec = str((decimal_converter(dec)) * 2).split(".")
         dec = int(dec)
         res += whole
-  
+
     return res
-  
-def decimal_converter(num): 
+
+def decimal_converter(num):
     while num > 1:
         num /= 10
     return num
 
+################# Lid Openers ###################
+#These control the servos to open the different bin lids. cMotor is a coninuous servo motor, the rest are simple servos
 def open_garb():
     gMotor.ChangeDutyCycle(5)
     time.sleep(7)
@@ -129,7 +153,7 @@ def open_pap():
     paMotor.ChangeDutyCycle(10)
     time.sleep(1)
     paMotor.ChangeDutyCycle(0)
-    
+
 def open_plas():
     plMotor.ChangeDutyCycle(5)
     time.sleep(7)
@@ -137,13 +161,20 @@ def open_plas():
     plMotor.ChangeDutyCycle(0)
 
 
+##################### Load the file function ########################
+#This function is called once a picture is taken
+#It starts by converting the gabage.jpg file into a garbage.bin file
+#Then it sends the garbage.bin file to the DE1-SoC and waits to 'hear' what the result is
+#Lastly, it calls the correct functions to
 def load_file():
+    #start by croping the image to the size of the training data set, then resize to correct resolution for the nerual network
     path = "/home/pi/Desktop/garbage.jpg"
     file = Image.open("/home/pi/Desktop/garbage.jpg")
     new_file = file.crop((160,0,1120,720))
     final_file = new_file.resize((128,128))
     final_file.save('/home/pi/Desktop/garbage.jpg')
 
+    #transform file into a .bin file
     #XxYx3 bgr image
     img_array = cv2.imread(path, cv2.IMREAD_COLOR)
 
@@ -154,9 +185,8 @@ def load_file():
     im[:, :, 0] = img_array[:, :, 2]
     im[:, :, 2] = img_array[:, :, 0]
 
-    #128x128x3 rgb image    
+    #128x128x3 rgb image
     new_array = cv2.resize(im, (IMG_SIZE, IMG_SIZE))
-    #formatted_array = cv2.resize(im, (IMG_SIZE, IMG_SIZE))
 
     #3x128x128 rgb image and linearized
     formatted_array = np.transpose(new_array, (2, 0, 1))
@@ -165,8 +195,7 @@ def load_file():
     flat_array = formatted_array.flatten()
 
     print(len(flat_array))
-
-
+    #writes to the .bin file
     with open("garbage.bin", "ab") as myfile:
         for pixel in flat_array:
             test = float_bin(abs(pixel), 24)
@@ -174,34 +203,41 @@ def load_file():
                 sign_extended = "0" + test
             else:
                 sign_extended = "1" + test
-                
+
             n = int(sign_extended, 2)
             data = n.to_bytes(4, "big")
             myfile.write(data)
 
+
+    #send the photo over to the DE1-SoC
     with pysftp.Connection('169.254.184.14', username='root', password='password', port=22) as sftp:
-        print("Connection successfully established")   
+        print("Connection successfully established")
         localpath = '/home/pi/garbot/garbage.bin'
         remotepath = '/home/root/Garbot/garbage.bin'
-    
-        sftp.put(localpath, remotepath)  
-        
+
+        sftp.put(localpath, remotepath)
+
         sftp.cwd('Garbot')
         sentinal = 1
+        #coninuously checks to see if a file has appeared on the DE1 signifying which bin to open, call coressponding open and add stat function
         while sentinal == 1:
             if sftp.exists('one.txt'):
                 open_garb()
+                inc_stat(1)
                 sentinal = 0
             if sftp.exists('two.txt'):
                 open_comp()
+                inc_stat(2)
                 sentinal = 0
             if sftp.exists('three.txt'):
                 open_pap()
+                inc_stat(3)
                 sentinal = 0
             if sftp.exists('four.txt'):
                 open_plas()
+                inc_stat(4)
                 sentinal = 0
-            
+
 #start up the servos
 gServo = GPIO.setup(5, GPIO.OUT)
 gMotor = GPIO.PWM(5, 50)
@@ -217,6 +253,7 @@ gMotor.start(0)
 cMotor.start(0)
 plMotor.start(0)
 paMotor.start(0)
+
 # Define and parse input arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('--modeldir', help='Folder the .tflite file is located in',
@@ -314,11 +351,12 @@ while True:
     #num = interpreter.get_tensor(output_details[3]['index'])[0]  # Total number of detected objects (inaccurate and not needed)
     captured = False
     count = 0
-    # Loop over all detections and draw detection box if confidence is above minimum threshold
+    # Loop over all detections and identify the detection if confidence is above minimum threshold
     for i in range(len(scores)):
         if ((scores[i] > min_conf_threshold) and (scores[i] <= 1.0)):
-            
-            object_name = labels[int(classes[i])] # Look up object name from "labels" array using class index                     
+
+            object_name = labels[int(classes[i])] # Look up object name from "labels" array using class index
+            #if a person is detected, wait a second for them to place down the garbage, then take a photo and call load_file()
             if not captured and object_name == "person":
                 print("Person detected\n")
                 time.sleep(2)
@@ -327,7 +365,7 @@ while True:
                 time.sleep(2)
                 os.remove('garbage.bin')
                 captured = True
-            
+
 
     # All the results have been drawn on the frame, so it's time to display it.
     cv2.imshow('Object detector', frame)

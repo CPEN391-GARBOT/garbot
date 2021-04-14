@@ -263,7 +263,7 @@ int start_accelerators(void) {
 	*(convolution_virtual+5) = 64;
 	*(convolution_virtual+6) = 63;
 	*(convolution_virtual+0) = 0;
-	
+
 
 	/**
 	 * Call max pooling layer where
@@ -294,7 +294,7 @@ int start_accelerators(void) {
 	*(convolution_virtual+5) = 64;
 	*(convolution_virtual+6) = 30;
 	*(convolution_virtual+0) = 0;
-	
+
 
 	/**
 	 * Call max pooling layer where
@@ -444,12 +444,6 @@ int wait_on_buttons(void) {
 
 	close(fd);
 	return -1;
-}
-
-
-int send_wifi_response(void) {
-	//may god help us all
-	return 0;
 }
 
 

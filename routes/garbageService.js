@@ -38,19 +38,19 @@ router.post("/:canID", async (req,res,next) => {
         }
    if(id == "1"){
            res.json({});
-           piblaster.setPwm(23,.1); 
+           piblaster.setPwm(23,5);
            await new Promise(resolve => setTimeout(resolve, 50));
-           piblaster.setPwm(23,0);
+           piblaster.setPwm(23,10);
    } else if (id == "2") {
            res.json({});
-           piblaster.setPwm(22,.1);
+           piblaster.setPwm(22,5);
            await new Promise(resolve => setTimeout(resolve, 50));
-           piblaster.setPwm(22,0);
+           piblaster.setPwm(22,10);
    } else if (id == "3"){
            res.json({});
-           piblaster.setPwm(18,.1);
+           piblaster.setPwm(18,5);
            await new Promise(resolve => setTimeout(resolve, 50));
-           piblaster.setPwm(18,0);
+           piblaster.setPwm(18,10);
    } else if (id == "4"){
            res.json({});
            piblaster.setPwm(4,.2);
@@ -65,7 +65,7 @@ router.post("/:canID", async (req,res,next) => {
         message: "User does not exist"
     });
    }
-    
+
 });
 
 module.exports = router;
